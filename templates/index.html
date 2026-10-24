@@ -1,0 +1,273 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Risk Monte Carlo</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            color: #f4f7fb;
+            background: #0b1020;
+        }
+
+        .container {
+            width: min(1050px, 92%);
+            margin: 40px auto;
+        }
+
+        .hero {
+            padding: 30px;
+            border: 1px solid #26334d;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #182849, #121a30);
+            margin-bottom: 24px;
+        }
+
+        .hero small {
+            color: #80d8ff;
+            letter-spacing: 2px;
+            font-weight: bold;
+        }
+
+        h1 {
+            margin: 12px 0;
+            font-size: clamp(26px, 5vw, 40px);
+        }
+
+        .muted {
+            color: #aab7ce;
+            line-height: 1.6;
+        }
+
+        .panel {
+            padding: 24px;
+            border: 1px solid #26334d;
+            border-radius: 18px;
+            background: #121a2c;
+            margin-bottom: 22px;
+        }
+
+        .form-grid, .metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #b9c6dc;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #354563;
+            border-radius: 10px;
+            color: white;
+            background: #0b1222;
+            font-size: 16px;
+        }
+
+        button {
+            margin-top: 18px;
+            padding: 13px 20px;
+            border: 0;
+            border-radius: 10px;
+            background: #55c7f3;
+            color: #07111d;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #8bdcff;
+        }
+
+        .metric {
+            padding: 20px;
+            border: 1px solid #26334d;
+            border-radius: 14px;
+            background: #0c1425;
+            min-width: 0;
+        }
+
+        .metric .label {
+            color: #aab7ce;
+            font-size: 14px;
+        }
+
+        .metric .value {
+            margin-top: 12px;
+            font-size: clamp(19px, 3vw, 27px);
+            font-weight: bold;
+            overflow-wrap: anywhere;
+        }
+
+        .error {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 10px;
+            background: #4a1d2a;
+            color: #ffd1d8;
+        }
+
+        .note {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 12px;
+            background: #18243a;
+            color: #b9c6dc;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        @media (max-width: 700px) {
+            .form-grid, .metrics {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                margin: 20px auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="container">
+        <section class="hero">
+            <small>MONTE CARLO SIMULATION</small>
+            <h1>Credit Risk Dashboard</h1>
+            <p class="muted">
+                Simulasi kemungkinan kerugian pinjaman berdasarkan
+                dataset German Credit Risk.
+            </p>
+        </section>
+
+        <section class="panel">
+            <h2>Pengaturan Simulasi</h2>
+
+            <form method="POST">
+                <div class="form-grid">
+                    <div>
+                        <label for="jumlah_pinjaman">
+                            N — Jumlah pinjaman per skenario
+                        </label>
+                        <input
+                            id="jumlah_pinjaman"
+                            name="jumlah_pinjaman"
+                            type="number"
+                            min="1"
+                            value="{{ jumlah_pinjaman }}"
+                            required
+                        >
+                    </div>
+
+                    <div>
+                        <label for="jumlah_simulasi">
+                            Jumlah skenario simulasi
+                        </label>
+                        <input
+                            id="jumlah_simulasi"
+                            name="jumlah_simulasi"
+                            type="number"
+                            min="1"
+                            value="{{ jumlah_simulasi }}"
+                            required
+                        >
+                    </div>
+
+                    <div>
+                        <label for="ambang">
+                            Ambang kerugian (threshold)
+                        </label>
+                        <input
+                            id="ambang"
+                            name="ambang"
+                            type="number"
+                            min="0"
+                            step="any"
+                            value="{{ ambang }}"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <button type="submit">Jalankan Simulasi</button>
+            </form>
+
+            {% if error %}
+                <div class="error">{{ error }}</div>
+            {% endif %}
+        </section>
+
+        <section class="panel">
+            <h2>Hasil Simulasi</h2>
+
+            {% if hasil %}
+                <div class="metrics">
+                    <div class="metric">
+                        <div class="label">Rata-rata total kerugian</div>
+                        <div class="value">
+                            {{ "{:,.2f}".format(hasil.rata_rata) }}
+                        </div>
+                    </div>
+
+                    <div class="metric">
+                        <div class="label">Kerugian minimum</div>
+                        <div class="value">
+                            {{ "{:,.2f}".format(hasil.minimum) }}
+                        </div>
+                    </div>
+
+                    <div class="metric">
+                        <div class="label">Kerugian maksimum</div>
+                        <div class="value">
+                            {{ "{:,.2f}".format(hasil.maksimum) }}
+                        </div>
+                    </div>
+
+                    <div class="metric">
+                        <div class="label">Peluang melewati ambang</div>
+                        <div class="value">
+                            {{ "{:.2%}".format(hasil.probabilitas) }}
+                        </div>
+                    </div>
+
+                    <div class="metric">
+                        <div class="label">Jumlah skenario</div>
+                        <div class="value">
+                            {{ hasil.jumlah_skenario }}
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <p class="muted">
+                    Hasil belum dihitung. Isi parameter di atas,
+                    lalu tekan tombol Jalankan Simulasi.
+                </p>
+            {% endif %}
+
+            <div class="note">
+                <strong>Catatan asumsi:</strong>
+                simulasi menganggap pinjaman berlabel Risk = bad
+                mengalami kerugian sebesar seluruh nilai kreditnya,
+                sedangkan Risk = good tidak menghasilkan kerugian.
+                Sampel pinjaman diambil dari data dengan pengembalian.
+                Hasil simulasi dapat berubah setiap kali dijalankan.
+            </div>
+        </section>
+    </main>
+</body>
+</html>
